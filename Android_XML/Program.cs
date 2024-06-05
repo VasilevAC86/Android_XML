@@ -27,14 +27,56 @@ namespace Android_XML
 
             // ---- Самостоятельная задача ----
             XDocument xDoc = XDocument.Load("Work2.xml");
-            //AddItemToProjects(doc, "01.02.25");
-            foreach(var projectElement in xDoc.Descendants("project"))
+            // Добавление аргументов к каждому проекту
+            foreach (var projectElement in doc.Descendants("project"))
             {
-                projectElement.Add(new XAttribute("newAttribut1", "Value1"));
-                projectElement.Add(new XAttribute("newAttribut2", "Value2"));
+                projectElement.Add(new XAttribute("newAttribute1", "Value1"));
+                projectElement.Add(new XAttribute("newAttribute2", "Value2"));
 
+                // Редактирование различных атрибутов
+                EditAttribute(projectElement, "newAttribute1", "asd", "245");
             }
-            xDoc.Save("Work2.xml");
+
+            // Сохранение изменений в XML-документ
+            doc.Save("file_updated.xml");
+
+            // Чтение XML-документа и десериализация в классы
+            var projects = doc.Descendants("project").Select(p => new
+            {
+                Id = p.Attribute("id")?.Value,
+                Name = p.Element("name")?.Value,
+                Description = p.Element("description")?.Value,
+                TeamMembers = p.Element("team")?.Elements("member").Select(m => m.Value).ToList(),
+                NewAttribute1 = p.Attribute("asd")?.Value,
+                NewAttribute2 = p.Attribute("newAttribute2")?.Value
+            });
+
+            // Выборка некоторых значений с использованием LINQ
+            var projectNames = projects.Select(p => p.Name).ToList();
+            var teamMembers = projects.SelectMany(p => p.TeamMembers).ToList();
+
+            // Вывод результатов
+            Console.WriteLine("Project Names:");
+            foreach (var projectName in projectNames)
+            {
+                Console.WriteLine(projectName);
+            }
+
+            Console.WriteLine("\nTeam Members:");
+            foreach (var member in teamMembers)
+            {
+                Console.WriteLine(member);
+            }
+        }
+
+        static void EditAttribute(XElement element, string attributeName, string newAttributeName, string newValue)
+        {
+            var attribute = element.Attribute(attributeName);
+            if (attribute != null)
+            {
+                attribute.Remove();
+                element.Add(new XAttribute(newAttributeName, newValue));
+            }
         }
         // Метод обновления атрибутов project
         public static void AddItemToProjects(XDocument xDoc, string date)
